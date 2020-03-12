@@ -14,10 +14,10 @@ def create_data_splits():
 
     num_classes = 0
 
-    for object_class in os.listdir("../dataset/101_ObjectCategories/101_ObjectCategories/"):
+    for object_class in os.listdir("../dataset/101_ObjectCategories/"):
         # data[object_class] = []
         num_classes += 1
-        image_class_path = "../dataset/101_ObjectCategories/101_ObjectCategories/" + object_class + "/"
+        image_class_path = "../dataset/101_ObjectCategories/" + object_class + "/"
 
         for image in os.listdir(image_class_path):
             im = Image.open(image_class_path + image)
@@ -34,8 +34,10 @@ def create_data_splits():
     input_shape = np.asarray(im).shape
 
     x_train, x_test, y_train, y_test = train_test_split(data_images, np.asarray(data_classes),
-                                                        test_size=0.4, random_state=32)
-    x_validation, x_test, y_validation, y_test = train_test_split(x_test, y_test, test_size=0.5, random_state=32)
+                                                        test_size=0.4, random_state=32,
+                                                        stratify=np.asarray(data_classes))
+    x_validation, x_test, y_validation, y_test = train_test_split(x_test, y_test, test_size=0.5, random_state=32,
+                                                                  stratify=y_test)
 
     for i, (image, im_class) in enumerate(zip(x_train, y_train)):
         directory = "../dataset/Train/" + im_class + "/"
@@ -100,13 +102,13 @@ def get_image_generators():
         # color_mode="rgb",
         class_mode='categorical')
     valid_generator = valid_datagen.flow_from_directory(
-        "../dataset/Train/",
+        "../dataset/Valid/",
         target_size=(300, 200),
         batch_size=200,
         # color_mode="rgb",
         class_mode='categorical')
     test_generator = test_datagen.flow_from_directory(
-        "../dataset/Train/",
+        "../dataset/Test/",
         target_size=(300, 200),
         batch_size=200,
         # color_mode="rgb",

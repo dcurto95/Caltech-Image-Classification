@@ -1,9 +1,8 @@
 import keras
 from keras import initializers
-from keras.layers import Conv2D
-from keras.layers import Input, Dense, Dropout, Flatten, Activation, BatchNormalization
-from keras.models import Model, Sequential, load_model
-from keras.models import model_from_json
+from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Dense, Dropout, Flatten, Activation, BatchNormalization
+from keras.models import Sequential, load_model
 
 
 def get_cnn_sequential_model(num_classes, input_shape):
@@ -12,12 +11,15 @@ def get_cnn_sequential_model(num_classes, input_shape):
     model.add(Conv2D(
         filters=32,
         kernel_size=(3, 3),
-        padding='Same',
+        padding='same',
         input_shape=input_shape,
+        activation='relu',
         kernel_initializer=initializers.RandomUniform(minval=-0.05, maxval=0.055, seed=34),
         bias_initializer=initializers.RandomUniform(minval=-0.05, maxval=0.05, seed=52)))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
+    # model.add(BatchNormalization())
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(64, (3, 3), padding="same", activation="relu"))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Dropout(0.25))
 
@@ -29,7 +31,7 @@ def get_cnn_sequential_model(num_classes, input_shape):
 
     model.add(Dropout(0.25))
 
-    model.add(Dense(25, kernel_initializer='normal'))
+    model.add(Dense(50, kernel_initializer='normal'))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
 
@@ -55,7 +57,8 @@ def compile_cnn_parametrized(model, loss, optimizer):
         metrics=['accuracy'])
 
 
-def fit_cnn(model, x_train, y_train, x_validation, y_validation, batch_size, epochs, class_weights=[]):  # , tbCallBack):
+def fit_cnn(model, x_train, y_train, x_validation, y_validation, batch_size, epochs,
+            class_weights=[]):  # , tbCallBack):
     if not class_weights:
         return model.fit(
             x_train,
@@ -74,9 +77,14 @@ def fit_cnn(model, x_train, y_train, x_validation, y_validation, batch_size, epo
         class_weight=class_weights)
 
 
-def fit_generator(model, train_generator, valid_generator, batch_size, epochs):
-    model.fit_generator(
+def fit_generator(model, train_generator, valid_generator, epochs):
+    steps_per_epoch = train_generator.samples // train_generator.batch_size
+    validation_steps = valid_generator.samples // valid_generator.batch_size
+
+    return model.fit_generator(
         train_generator,
+        steps_per_epoch=steps_per_epoch,
+        validation_steps=validation_steps,
         epochs=epochs,
         verbose=1,
         validation_data=valid_generator)
@@ -119,3 +127,8 @@ def predict(model, x_evaluation, batch_size):
 
 def predict_classes(model, x_evaluation, batch_size):
     return model.predict_classes(x_evaluation, batch_size=batch_size)
+
+
+def evaluate_generator(model, test_generator):
+    return model.evaluate_generator(test_generator, steps=test_generator.samples // test_generator.batch_size,
+                                    verbose=0)
