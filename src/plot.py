@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 
-def draw_history(history):
+def draw_history(history, test_name):
     # list all data in history
     print(history.history.keys())
 
@@ -13,7 +13,7 @@ def draw_history(history):
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
     plt.legend(['train', 'validation'], loc='best')
-    plt.savefig('../logs/model_acc.jpg')
+    plt.savefig('../logs/' + test_name + '/model_acc.jpg')
 
     plt.figure()
     # summarize history for loss
@@ -23,6 +23,6 @@ def draw_history(history):
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'validation'], loc='best')
-    plt.savefig('../logs/model_loss.jpg')
+    plt.savefig('../logs/' + test_name + '/model_loss.jpg')
 
     plt.close('all')
